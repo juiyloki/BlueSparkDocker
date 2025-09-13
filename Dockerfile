@@ -1,10 +1,13 @@
 # Use ROS2 Humble desktop as base (Ubuntu 22.04)
-FROM osrf/ros:humble-desktop1
+FROM osrf/ros:humble-desktop
 
 # Metadata
 LABEL maintainer="Agata"
 
-# Update & install basic tools
+# Prevent prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update & install basic tools + Gazebo packages
 RUN apt update && apt install -y \
     python3-colcon-common-extensions \
     python3-pip \
@@ -13,6 +16,10 @@ RUN apt update && apt install -y \
     curl \
     lsb-release \
     gnupg \
+    ros-humble-gazebo-ros-pkgs \
+    ros-humble-gazebo-ros2-control \
+    && apt update \
+    && apt upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Setup ROS2 environment
