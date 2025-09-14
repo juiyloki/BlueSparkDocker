@@ -49,7 +49,6 @@ This repository provides a ready-to-use Docker environment for **ROS 2 Humble** 
    ```bash
     ./build.sh
 
-
 This will create a Docker image named `humble-sim:latest`.
 
 ---
