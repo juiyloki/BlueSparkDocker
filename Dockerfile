@@ -7,8 +7,8 @@ LABEL maintainer="Agata"
 # Prevent prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update & install basic tools + Gazebo packages
-RUN apt update && apt install -y \
+# Update & install tools + ROS2/Gazebo/MAVROS
+RUN apt-get update && apt-get install -y \
     python3-colcon-common-extensions \
     python3-pip \
     git \
@@ -18,9 +18,16 @@ RUN apt update && apt install -y \
     gnupg \
     ros-humble-gazebo-ros-pkgs \
     ros-humble-gazebo-ros2-control \
-    && apt update \
-    && apt upgrade -y \
+    ros-humble-mavros \
+    ros-humble-mavros-extras \
+    ros-humble-mavros-msgs \
+    geographiclib-tools \
     && rm -rf /var/lib/apt/lists/*
+
+# Install GeographicLib datasets (needed for MAVROS)
+RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh \
+    && bash install_geographiclib_datasets.sh \
+    && rm install_geographiclib_datasets.sh
 
 # Setup ROS2 environment
 SHELL ["/bin/bash", "-c"]
