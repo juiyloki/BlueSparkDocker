@@ -46,7 +46,7 @@ This repository provides a ready-to-use Docker environment for **ROS 2 Humble** 
 
 3. Build the Docker image:
 
-
+   ```bash
     ./build.sh
 
 
@@ -58,10 +58,12 @@ This will create a Docker image named `humble-sim:latest`.
 
 1. Configure workspace path (optional). By default, the workspace is `~/ros2_ws`. To customize, edit `config.env`:
 
-    HOST_WS=~/my_custom_ws
+   ```bash
+   HOST_WS=~/my_custom_ws
 
-2. Run the container:
+3. Run the container:
 
+   ```bash
     ./run.sh
 
 - If the container already exists, it will start and attach to it.
@@ -69,6 +71,7 @@ This will create a Docker image named `humble-sim:latest`.
 
 3. Access the ROS 2 workspace inside the container:
 
+   ```bash
     source /opt/ros/humble/setup.bash
     cd /home/ros/ros2_ws
     colcon build
@@ -84,6 +87,7 @@ Your host workspace is mounted inside the container at `/home/ros/ros2_ws`.
 - Python dependencies for PX4 are installed according to `Tools/setup/requirements.txt`.
 - ROS 2 workspace structure:
 
+   ```bash
     ros2_ws/
     └── src/
 
@@ -95,10 +99,12 @@ Mount your packages in `src/` to have them accessible in the container.
 
 Remove the container:
 
+   ```bash
     ./clean.sh
 
 Remove the Docker image:
 
+   ```bash
     docker rmi humble-sim:latest
 
 ---
