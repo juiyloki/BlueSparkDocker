@@ -40,14 +40,16 @@ This repository provides a ready-to-use Docker environment for **ROS 2 Humble** 
 
 1. Clone this repository:
 
-   ```bash
-    git clone <https://github.com/juiyloki/BlueSparkDocker>
-    cd BlueSparkDocker
+```bash
+git clone <https://github.com/juiyloki/BlueSparkDocker>
+cd BlueSparkDocker
+```
 
 3. Build the Docker image:
 
-   ```bash
-    ./build.sh
+```bash
+./build.sh
+```
 
 This will create a Docker image named `humble-sim:latest`.
 
@@ -57,24 +59,27 @@ This will create a Docker image named `humble-sim:latest`.
 
 1. Configure workspace path (optional). By default, the workspace is `~/ros2_ws`. To customize, edit `config.env`:
 
-   ```bash
-   HOST_WS=~/my_custom_ws
+```bash
+HOST_WS=~/my_custom_ws
+```
 
 3. Run the container:
 
-   ```bash
-    ./run.sh
+```bash
+./run.sh
+```
 
 - If the container already exists, it will start and attach to it.
 - If not, a new container named `humble-sim` will be created.
 
 3. Access the ROS 2 workspace inside the container:
 
-   ```bash
-    source /opt/ros/humble/setup.bash
-    cd /home/ros/ros2_ws
-    colcon build
-    source install/setup.bash
+```bash
+source /opt/ros/humble/setup.bash
+cd /home/ros/ros2_ws
+colcon build
+source install/setup.bash
+```
 
 Your host workspace is mounted inside the container at `/home/ros/ros2_ws`.
 
@@ -86,9 +91,10 @@ Your host workspace is mounted inside the container at `/home/ros/ros2_ws`.
 - Python dependencies for PX4 are installed according to `Tools/setup/requirements.txt`.
 - ROS 2 workspace structure:
 
-   ```bash
-    ros2_ws/
-    └── src/
+```bash
+ros2_ws/
+   └── src/
+```
 
 Mount your packages in `src/` to have them accessible in the container.
 
