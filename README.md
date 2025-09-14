@@ -41,7 +41,7 @@ This repository provides a ready-to-use Docker environment for **ROS 2 Humble** 
 1. Clone this repository:
 
 ```bash
-git clone <https://github.com/juiyloki/BlueSparkDocker>
+git clone https://github.com/juiyloki/BlueSparkDocker
 cd BlueSparkDocker
 ```
 
