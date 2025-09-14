@@ -98,12 +98,10 @@ Mount your packages in `src/` to have them accessible in the container.
 
 Remove the container:
 
-   ```bash
     ./clean.sh
 
 Remove the Docker image:
 
-   ```bash
     docker rmi humble-sim:latest
 
 ---
