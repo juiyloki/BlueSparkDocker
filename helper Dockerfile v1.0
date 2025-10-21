@@ -1,24 +1,13 @@
-# ----------------------------
-# Base
-# ----------------------------
+# Use ROS2 Humble desktop as base (Ubuntu 22.04)
 FROM osrf/ros:humble-desktop
 
 LABEL maintainer="Agata"
 
+# Prevent prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
-ENV HOME=/home/rosuser
-ENV USER=rosuser
 
 # ----------------------------
-# Create non-root user
-# ----------------------------
-RUN useradd -ms /bin/bash $USER && \
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-WORKDIR $HOME
-
-# ----------------------------
-# Install dependencies
+# Install apt dependencies
 # ----------------------------
 RUN apt-get update && apt-get install -y \
     python3-colcon-common-extensions \
@@ -54,16 +43,25 @@ RUN apt-get update && apt-get install -y \
     qtcreator \
     genromfs \
     zip \
-    sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # ----------------------------
-# Upgrade pip and install Python tools
+# Upgrade pip and tools
 # ----------------------------
-RUN pip3 install --upgrade pip setuptools wheel pyulog
+RUN pip3 install --upgrade pip setuptools wheel
 
 # ----------------------------
-# GeographicLib datasets
+# Remove distutils-installed packages that conflict with PX4
+# ----------------------------
+RUN apt remove -y python3-sympy python3-mpmath || true
+
+# ----------------------------
+# Install pyulog
+# ----------------------------
+RUN pip3 install pyulog
+
+# ----------------------------
+# Install GeographicLib datasets (needed by MAVROS)
 # ----------------------------
 RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh \
     && bash install_geographiclib_datasets.sh \
@@ -73,41 +71,26 @@ RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/
 # Setup ROS2 environment
 # ----------------------------
 SHELL ["/bin/bash", "-c"]
-RUN echo "source /opt/ros/humble/setup.bash" >> $HOME/.bashrc
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
 # ----------------------------
-# Clone PX4 (ArduSub optional) inside Docker
+# Clone PX4 repository
 # ----------------------------
-USER $USER
-WORKDIR $HOME
-RUN git clone --branch v1.14.3 --recursive https://github.com/PX4/PX4-Autopilot.git
-
-# Fix matplotlib for PX4 Python dependencies
-WORKDIR $HOME/PX4-Autopilot
-RUN sed -i 's/matplotlib>=3\.0\.\*/matplotlib>=3.0.0/' Tools/setup/requirements.txt && \
-    pip3 install --break-system-packages -r Tools/setup/requirements.txt
+WORKDIR /home/ros
+RUN git clone https://github.com/PX4/PX4-Autopilot.git --branch v1.14.3 --recursive
 
 # ----------------------------
-# ArduPilot (ArduSub) inside Docker
+# Fix matplotlib version & install PX4 Python dependencies
 # ----------------------------
-WORKDIR $HOME
-RUN git clone --recursive -b Sub-4.5 https://github.com/ArduPilot/ardupilot.git
-WORKDIR $HOME/ardupilot
-RUN git submodule update --init --recursive
-RUN pip3 install pexpect
-RUN ./waf configure --board sitl && ./waf build sub
+WORKDIR /home/ros/PX4-Autopilot
+RUN sed -i 's/matplotlib>=3\.0\.\*/matplotlib>=3.0.0/' Tools/setup/requirements.txt \
+    && pip3 install --break-system-packages -r Tools/setup/requirements.txt
 
 # ----------------------------
-# ROS2 workspace
+# Create ROS2 workspace folder
 # ----------------------------
-RUN mkdir -p $HOME/ros2_ws/src
-WORKDIR $HOME/ros2_ws
-
-# ----------------------------
-# Expose ports for SITL + MAVROS
-# ----------------------------
-EXPOSE 14550/udp
-EXPOSE 14540/udp
+RUN mkdir -p /home/ros/ros2_ws/src
+WORKDIR /home/ros/ros2_ws
 
 # ----------------------------
 # Default command
