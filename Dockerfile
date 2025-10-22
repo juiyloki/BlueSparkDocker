@@ -55,12 +55,14 @@ RUN apt-get update && apt-get install -y \
     genromfs \
     zip \
     sudo \
+    netcat \
     && rm -rf /var/lib/apt/lists/*
 
 # ----------------------------
 # Upgrade pip and install Python tools
 # ----------------------------
-RUN pip3 install --upgrade pip setuptools wheel pyulog
+RUN pip3 install --upgrade pip
+RUN pip3 install --break-system-packages "setuptools<68" wheel colcon-common-extensions
 
 # ----------------------------
 # GeographicLib datasets
@@ -104,10 +106,49 @@ RUN mkdir -p $HOME/ros2_ws/src
 WORKDIR $HOME/ros2_ws
 
 # ----------------------------
+# Build MAVROS in ros2_ws
+# ----------------------------
+USER $USER
+WORKDIR $HOME/ros2_ws/src
+
+# Clone MAVROS
+RUN git clone -b ros2 https://github.com/mavlink/mavros.git
+
+WORKDIR $HOME/ros2_ws
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --symlink-install"
+
+
+# ----------------------------
+# --- Step 1 additions: ArduPilot Gazebo plugin ---
+# ----------------------------
+USER $USER
+WORKDIR $HOME
+RUN git clone -b gazebo11 https://github.com/ArduPilot/ardupilot_gazebo.git && \
+    cd ardupilot_gazebo && mkdir build && cd build && \
+    cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_CXX_EXTENSIONS=OFF .. && make -j$(nproc)
+
+
+# --- Set environment paths for Gazebo ---
+USER root
+RUN echo '# ArduPilot Gazebo plugin setup' > /etc/profile.d/ardupilot_gazebo.sh && \
+    echo 'export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:/home/rosuser/ardupilot_gazebo/build' >> /etc/profile.d/ardupilot_gazebo.sh && \
+    echo 'export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/home/rosuser/ardupilot_gazebo/models' >> /etc/profile.d/ardupilot_gazebo.sh && \
+    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/rosuser/ardupilot_gazebo/build' >> /etc/profile.d/ardupilot_gazebo.sh && \
+    chmod +x /etc/profile.d/ardupilot_gazebo.sh
+
+# Apply same exports to rosuser .bashrc for interactive shells
+RUN echo 'source /etc/profile.d/ardupilot_gazebo.sh' >> $HOME/.bashrc && \
+    chown $USER:$USER $HOME/.bashrc
+
+USER $USER
+WORKDIR $HOME
+
+# ----------------------------
 # Expose ports for SITL + MAVROS
 # ----------------------------
 EXPOSE 14550/udp
 EXPOSE 14540/udp
+EXPOSE 5760/tcp
 
 # ----------------------------
 # Default command
